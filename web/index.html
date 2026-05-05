@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superstore Retail Analytics — Gauransh Singh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0d0f;
+    --bg2: #111518;
+    --bg3: #181d22;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8eaed;
+    --muted: #7a8390;
+    --accent: #00d4a0;
+    --accent2: #3b82f6;
+    --accent3: #f59e0b;
+    --red: #ef4444;
+    --serif: 'DM Serif Display', serif;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 48px;
+    background: rgba(10,13,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 48px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,160,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,160,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at 20% 50%, black 0%, transparent 70%);
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,212,160,0.08) 0%, transparent 70%);
+    top: 50%; left: -100px;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .hero-glow2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+    bottom: 10%; right: 10%;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding: 6px 14px;
+    border: 1px solid rgba(0,212,160,0.25);
+    border-radius: 2px;
+    background: rgba(0,212,160,0.05);
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero-title {
+    font-family: var(--serif);
+    font-size: clamp(48px, 5vw, 72px);
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 40px;
+    max-width: 480px;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn-primary:hover {
+    background: #00f0b8;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,212,160,0.25);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-outline:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* KPI CARDS */
+  .hero-kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    animation: fadeUp 0.6s both;
+  }
+
+  .kpi-card:hover {
+    border-color: rgba(0,212,160,0.2);
+    transform: translateY(-2px);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .kpi-card:hover::before { opacity: 1; }
+
+  .kpi-card:nth-child(1) { animation-delay: 0.1s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.2s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.3s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.4s; }
+
+  .kpi-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: var(--serif);
+    font-size: 32px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .kpi-note {
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .kpi-note.warn { color: var(--accent3); }
+  .kpi-note.bad { color: var(--red); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 100px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .section-sub {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 56px;
+  }
+
+  /* FINDINGS */
+  .findings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  .finding-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .finding-card:hover {
+    border-color: rgba(255,255,255,0.15);
+    background: var(--bg3);
+  }
+
+  .finding-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .finding-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .finding-body {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .finding-stat {
+    display: inline-block;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  .stat-red { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .stat-green { background: rgba(0,212,160,0.1); color: var(--accent); border: 1px solid rgba(0,212,160,0.2); }
+  .stat-yellow { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+  .stat-blue { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+
+  /* DISCOUNT VIZ */
+  .discount-viz {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 40px;
+    margin-top: 40px;
+  }
+
+  .discount-viz h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .discount-viz p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .discount-bars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    align-items: end;
+    height: 200px;
+  }
+
+  .d-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    gap: 8px;
+  }
+
+  .d-bar-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .d-bar {
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    transition: opacity 0.2s;
+    position: relative;
+  }
+
+  .d-bar-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .d-zero-line {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 0;
+  }
+
+  /* SQL PHASES */
+  .phases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .phase {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    transition: border-color 0.3s;
+  }
+
+  .phase:hover { border-color: rgba(59,130,246,0.3); }
+
+  .phase-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 2px;
+    padding: 4px 8px;
+    height: fit-content;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .phase-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .phase-content p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* VIEWS TABLE */
+  .views-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .views-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .views-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .views-table tr:last-child td { border-bottom: none; }
+
+  .views-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .views-table td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .views-table td:last-child { color: var(--muted); }
+
+  /* CATEGORY CHART */
+  .cat-chart { margin-top: 8px; }
+
+  .cat-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 90px;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .cat-name { font-size: 13px; color: var(--muted); }
+
+  .cat-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    height: 32px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .cat-fill {
+    height: 100%;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+  }
+
+  .cat-fill span {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .cat-margin {
+    font-family: var(--mono);
+    font-size: 13px;
+    text-align: right;
+  }
+
+  /* RECOMMENDATIONS */
+  .recs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .rec {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    transition: all 0.3s;
+  }
+
+  .rec:hover {
+    border-color: rgba(0,212,160,0.25);
+    transform: translateY(-2px);
+  }
+
+  .rec-icon {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .rec h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .rec p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* TECH STACK */
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .stack-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .stack-tag:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: var(--bg3);
+  }
+
+  .stack-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .about-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .about-header {
+    padding: 28px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(0,212,160,0.05), transparent);
+  }
+
+  .about-header h3 {
+    font-family: var(--serif);
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .about-header p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .about-body { padding: 24px 28px; }
+
+  .about-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    gap: 16px;
+  }
+
+  .about-row:last-child { border-bottom: none; }
+
+  .about-row-label {
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .about-row-val {
+    color: var(--text);
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  .about-row-val a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .about-row-val a:hover { text-decoration: underline; }
+
+  .achievements {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ach {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ach::before {
+    content: '▲';
+    color: var(--accent);
+    font-size: 10px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 100%;
+  }
+
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  /* DIVIDER */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* REGION BARS */
+  .region-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .region-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 24px;
+    transition: border-color 0.3s;
+  }
+
+  .region-card:hover { border-color: rgba(59,130,246,0.3); }
+
+  .region-name {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .region-sales {
+    font-family: var(--serif);
+    font-size: 26px;
+    margin-bottom: 4px;
+  }
+
+  .region-details {
+    display: flex;
+    gap: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .region-profit { color: var(--accent); }
+  .region-margin { color: var(--muted); }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 20px 60px; }
+    .hero-content { grid-template-columns: 1fr; gap: 40px; }
+    section { padding: 60px 20px; }
+    .phases { grid-template-columns: 1fr; }
+    .about-grid { grid-template-columns: 1fr; }
+    .discount-bars { grid-template-columns: repeat(2, 1fr); height: auto; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+    .region-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">gs.analytics / superstore</span>
+  <ul class="nav-links">
+    <li><a href="#findings">Findings</a></li>
+    <li><a href="#analysis">SQL</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+
+  <div class="hero-content">
+    <div>
+      <div class="hero-tag">Portfolio Project · 2024</div>
+      <h1 class="hero-title">Superstore<br><em>Retail</em><br>Analytics</h1>
+      <p class="hero-sub">A full-cycle retail analytics project uncovering where a $2.33M business generates value — and where it quietly bleeds money.</p>
+      <div class="hero-ctas">
+        <a href="#findings" class="btn btn-primary">View Findings ↓</a>
+        <a href="https://gauransh-singh.github.io" target="_blank" class="btn btn-outline">Portfolio ↗</a>
+      </div>
+    </div>
+
+    <div class="hero-kpis">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Sales</div>
+        <div class="kpi-value">$2.33M</div>
+        <div class="kpi-note">5,111 unique orders</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Profit</div>
+        <div class="kpi-value">$292K</div>
+        <div class="kpi-note">Net positive</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Profit Margin</div>
+        <div class="kpi-value">12.6%</div>
+        <div class="kpi-note warn">Furniture drags this</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg Order Value</div>
+        <div class="kpi-value">$464</div>
+        <div class="kpi-note">Across all segments</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FINDINGS -->
+<section id="findings">
+  <div class="reveal">
+    <div class="section-label">01 — Key Findings</div>
+    <h2 class="section-title">Where the money goes.<br>And where it disappears.</h2>
+    <p class="section-sub">Five data-driven findings that directly answer the central business question.</p>
+  </div>
+
+  <div class="findings-grid reveal">
+    <div class="finding-card">
+      <div class="finding-num">finding_01</div>
+      <div class="finding-title">High discounts destroy profit</div>
+      <div class="finding-body">Orders with discounts above 40% generated a total loss of $100,030. The swing from no-discount to high-discount orders is a $171 difference in average profit per order — with no volume compensation.</div>
+      <span class="finding-stat stat-red">High discount avg: -$105/order</span>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">finding_02</div>
+      <div class="finding-title">Furniture has a 2.6% margin</div>
+      <div class="finding-body">Despite $754K in sales — nearly as much as Technology — Furniture generated only $19,730 in profit. Tables sub-category alone lost $17,753. The category is essentially a revenue illusion.</div>
+      <span class="finding-stat stat-yellow">2.6% vs 17.5% in Technology</span>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">finding_03</div>
+      <div class="finding-title">Central region underperforms</div>
+      <div class="finding-body">The Central region has a 7.9% margin despite $503K in sales. That's nearly half the West region's 15.0% margin on similar volume — a structural issue likely driven by discount policies.</div>
+      <span class="finding-stat stat-red">7.9% margin vs 15.0% in West</span>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">finding_04</div>
+      <div class="finding-title">Strong Q4 seasonality every year</div>
+      <div class="finding-body">Sep–Dec consistently outperforms Jan–Feb across all four years in the dataset. Q4 accounts for a disproportionate share of annual profit, making inventory planning critical for sustained performance.</div>
+      <span class="finding-stat stat-blue">Consistent 4-year pattern</span>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">finding_05</div>
+      <div class="finding-title">Technology leads on every metric</div>
+      <div class="finding-body">17.5% margin on $840K in sales. Copiers ($56K profit) and Phones ($45K profit) are the top sub-categories. Technology is the engine — every marketing dollar here yields the highest return.</div>
+      <span class="finding-stat stat-green">$146K total profit</span>
+    </div>
+  </div>
+
+  <!-- DISCOUNT VIZ -->
+  <div class="discount-viz reveal">
+    <h3>Discount Impact on Average Profit</h3>
+    <p>Average profit per order by discount band — the clearest single chart in this analysis</p>
+    <div style="position:relative;">
+      <div class="discount-bars" style="align-items:center; height:auto; gap:20px;">
+        <!-- Positive bars go up, negative go down. Using flex column trick -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--mono);font-size:13px;color:var(--accent);">+$66</span>
+          <div style="width:100%;background:rgba(0,212,160,0.15);border:1px solid rgba(0,212,160,0.3);border-radius:4px;height:132px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;color:var(--muted);transform:rotate(-90deg);white-space:nowrap;">avg profit</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted);text-align:center;">No<br>Discount</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--mono);font-size:13px;color:var(--accent);">+$26</span>
+          <div style="width:100%;background:rgba(0,212,160,0.08);border:1px solid rgba(0,212,160,0.15);border-radius:4px;height:52px;display:flex;align-items:center;justify-content:center;">
+          </div>
+          <span style="font-size:11px;color:var(--muted);text-align:center;">Low<br>0–20%</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--mono);font-size:13px;color:#f87171;">-$78</span>
+          <div style="width:100%;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:4px;height:78px;display:flex;align-items:center;justify-content:center;">
+          </div>
+          <span style="font-size:11px;color:var(--muted);text-align:center;">Medium<br>20–40%</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-family:var(--mono);font-size:13px;color:#f87171;">-$105</span>
+          <div style="width:100%;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.35);border-radius:4px;height:105px;display:flex;align-items:center;justify-content:center;">
+          </div>
+          <span style="font-size:11px;color:var(--muted);text-align:center;">High<br>&gt;40%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGION + CATEGORY -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;" class="reveal">
+    <div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Region Performance</div>
+      <div class="region-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="region-card">
+          <div class="region-name">West</div>
+          <div class="region-sales">$740K</div>
+          <div class="region-details">
+            <span class="region-profit">+$111K profit</span>
+            <span class="region-margin">15.0%</span>
+          </div>
+        </div>
+        <div class="region-card">
+          <div class="region-name">East</div>
+          <div class="region-sales">$692K</div>
+          <div class="region-details">
+            <span class="region-profit">+$95K profit</span>
+            <span class="region-margin">13.7%</span>
+          </div>
+        </div>
+        <div class="region-card">
+          <div class="region-name">South</div>
+          <div class="region-sales">$392K</div>
+          <div class="region-details">
+            <span class="region-profit">+$47K profit</span>
+            <span class="region-margin">11.9%</span>
+          </div>
+        </div>
+        <div class="region-card" style="border-color:rgba(239,68,68,0.25);">
+          <div class="region-name">Central</div>
+          <div class="region-sales">$503K</div>
+          <div class="region-details">
+            <span style="color:#f87171;font-family:var(--mono);font-size:11px;">+$40K profit</span>
+            <span style="color:#f87171;font-family:var(--mono);font-size:11px;">7.9% ⚠</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Category Breakdown</div>
+      <div class="cat-chart">
+        <div class="cat-row">
+          <div class="cat-name">Technology</div>
+          <div class="cat-track"><div class="cat-fill" style="width:100%;background:rgba(59,130,246,0.25);"><span style="color:#60a5fa;">$840K · $147K profit</span></div></div>
+          <div class="cat-margin" style="color:var(--accent);">17.5%</div>
+        </div>
+        <div class="cat-row">
+          <div class="cat-name">Office Supp.</div>
+          <div class="cat-track"><div class="cat-fill" style="width:87%;background:rgba(0,212,160,0.2);"><span style="color:var(--accent);">$732K · $126K profit</span></div></div>
+          <div class="cat-margin" style="color:var(--accent);">17.2%</div>
+        </div>
+        <div class="cat-row">
+          <div class="cat-name">Furniture</div>
+          <div class="cat-track"><div class="cat-fill" style="width:90%;background:rgba(239,68,68,0.15);"><span style="color:#f87171;">$755K · $20K profit</span></div></div>
+          <div class="cat-margin" style="color:#f87171;">2.6%</div>
+        </div>
+        <div style="margin-top:20px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:4px;font-size:12px;color:#fca5a5;line-height:1.6;">
+          Loss-making sub-categories: <strong>Tables -$17,753</strong> · Bookcases -$3,632 · Supplies -$1,171
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SQL ANALYSIS -->
+<section id="analysis">
+  <div class="reveal">
+    <div class="section-label">02 — SQL Analysis</div>
+    <h2 class="section-title">Eight phases.<br>One clean script.</h2>
+    <p class="section-sub">All analysis performed in MySQL 8.0, organized into phases from data cleaning through to production-ready views.</p>
+  </div>
+
+  <div class="phases reveal">
+    <div class="phase">
+      <span class="phase-num">Phase 01</span>
+      <div class="phase-content">
+        <h4>Data Cleaning</h4>
+        <p>Null check on Sales and Profit (zero found). Detected 2 genuine full-row duplicates via Group By approach excluding Row_ID. Final table: 10,192 rows.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 02</span>
+      <div class="phase-content">
+        <h4>Basic Metrics</h4>
+        <p>Baseline KPIs: 5,111 unique orders, $2.33M total sales, $292K profit, 12.6% overall margin.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 03</span>
+      <div class="phase-content">
+        <h4>Time-Series Analysis</h4>
+        <p>Monthly sales and profit trends 2023–2026. YoY growth using LAG() window function. Revealed consistent Q4 seasonality.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 04</span>
+      <div class="phase-content">
+        <h4>Region Analysis</h4>
+        <p>Sales, profit, and order count by region using WITH ROLLUP for automatic subtotals. Identified Central as the underperformer.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 05</span>
+      <div class="phase-content">
+        <h4>Category & Sub-Category</h4>
+        <p>Profit margin by category and sub-category. Identified Tables (-$17,753), Bookcases (-$3,632), and Supplies (-$1,171) as loss-makers.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 06</span>
+      <div class="phase-content">
+        <h4>Discount Impact</h4>
+        <p>Raw discount-profit correlation then banded into 4 groups. Proved discounts above 20% consistently produce negative returns.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 07</span>
+      <div class="phase-content">
+        <h4>Customer RFM</h4>
+        <p>Recency, Frequency, Monetary analysis per customer. Top customers exceed $20K in lifetime value. 804 unique customers in dataset.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="phase-num">Phase 08</span>
+      <div class="phase-content">
+        <h4>Shipping Performance</h4>
+        <p>Average shipping days, order count, and sales by ship mode. Standard Class handles 60% of all orders at $1.38M in sales.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;" class="reveal">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Views Created for Excel Export</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+      <table class="views-table">
+        <thead>
+          <tr>
+            <th>View Name</th>
+            <th>Contents</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>vw_monthly_sales_trend</td><td>Month, Total_Sales, Total_Profit, Margin_Pct — time series data</td></tr>
+          <tr><td>vw_region_performance</td><td>Region, Orders, Sales, Profit — with ROLLUP subtotals</td></tr>
+          <tr><td>vw_category_analysis</td><td>Category, Orders, Sales, Profit, Margin — ordered by profit</td></tr>
+          <tr><td>vw_subcategory_analysis</td><td>Sub_Category, Sales, Profit, Margin_Pct, Avg_Discount</td></tr>
+          <tr><td>vw_discount_impact</td><td>Discount_Band, Orders, Avg_Profit, Total_Profit</td></tr>
+          <tr><td>vw_customer_rfm</td><td>Customer, Recency_Days, Total_Orders, Monetary</td></tr>
+          <tr><td>vw_shipping_analysis</td><td>Ship_Mode, Avg_Shipping_Days, Orders, Sales</td></tr>
+          <tr><td>vw_loss_making_products</td><td>Product_Name, SUM(Profit) — all products below zero</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DASHBOARD -->
+<section id="dashboard">
+  <div class="reveal">
+    <div class="section-label">03 — Excel Dashboard</div>
+    <h2 class="section-title">Interactive.<br>Data-driven.</h2>
+    <p class="section-sub">Built from 8 pivot tables sourced from SQL view exports. One slicer click filters the entire dashboard simultaneously.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" class="reveal">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px;">
+      <div style="font-size:18px;margin-bottom:8px;">📊</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">KPI Cards</div>
+      <div style="font-size:13px;color:var(--muted);">Total Sales, Profit, Margin %, Avg Order Value — as rounded-rectangle shapes with linked text boxes.</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px;">
+      <div style="font-size:18px;margin-bottom:8px;">📈</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Monthly Trend</div>
+      <div style="font-size:13px;color:var(--muted);">Area/line chart from Jan 2023 to Dec 2026. Date axis with 3-month intervals. $K formatted Y-axis.</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px;">
+      <div style="font-size:18px;margin-bottom:8px;">🗺️</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Region Performance</div>
+      <div style="font-size:13px;color:var(--muted);">Clustered bar comparing Sales and Profit across West, East, South, Central regions.</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px;">
+      <div style="font-size:18px;margin-bottom:8px;">🏷️</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Discount Impact</div>
+      <div style="font-size:13px;color:var(--muted);">Column chart showing avg profit per order by discount band. The strongest single visual in the dashboard.</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px;">
+      <div style="font-size:18px;margin-bottom:8px;">📦</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Sub-Category Analysis</div>
+      <div style="font-size:13px;color:var(--muted);">Horizontal bars split into top performers (Copiers, Phones) and loss-makers (Tables, Bookcases).</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:20px;">
+      <div style="font-size:18px;margin-bottom:8px;">🎛️</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Slicers</div>
+      <div style="font-size:13px;color:var(--muted);">Interactive filters for Segment, Region, Category. Connected to all pivot tables for one-click filtering.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RECOMMENDATIONS -->
+<section>
+  <div class="reveal">
+    <div class="section-label">04 — Recommendations</div>
+    <h2 class="section-title">What the data says<br>leadership should do.</h2>
+    <p class="section-sub">Five actionable recommendations derived directly from the analysis findings.</p>
+  </div>
+
+  <div class="recs reveal">
+    <div class="rec">
+      <div class="rec-icon">🚫</div>
+      <h4>Cap discounts at 20%</h4>
+      <p>Discounts above this threshold consistently produce negative average profit. No volume justification found in the data.</p>
+    </div>
+    <div class="rec">
+      <div class="rec-icon">🪑</div>
+      <h4>Review Tables pricing</h4>
+      <p>$17,753 total loss on Tables sub-category. Either reprice, reduce discounting, or discontinue the worst-performing SKUs.</p>
+    </div>
+    <div class="rec">
+      <div class="rec-icon">🗺️</div>
+      <h4>Audit Central region</h4>
+      <p>7.9% margin is nearly half the West's 15.0%. Investigate discount policies in Central and align with top-performing region practices.</p>
+    </div>
+    <div class="rec">
+      <div class="rec-icon">💻</div>
+      <h4>Prioritize Technology</h4>
+      <p>17.5% margin on $840K in sales. Every marketing dollar invested in Technology yields the highest return in the portfolio.</p>
+    </div>
+    <div class="rec">
+      <div class="rec-icon">📅</div>
+      <h4>Plan Q4 inventory early</h4>
+      <p>Consistent Sep–Dec demand spikes across all 4 years. Begin inventory and staffing planning 60 days before Q4 each year.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="reveal">
+    <div class="section-label">05 — About</div>
+    <h2 class="section-title">The analyst<br>behind the data.</h2>
+  </div>
+
+  <div class="about-grid reveal">
+    <div class="about-card">
+      <div class="about-header">
+        <h3>Gauransh Singh</h3>
+        <p>BCA Final Year · AI/ML Specialization · Galgotias University</p>
+      </div>
+      <div class="about-body">
+        <div class="about-row">
+          <span class="about-row-label">Skills</span>
+          <span class="about-row-val">SQL · Python · Power BI · Tableau · Excel</span>
+        </div>
+        <div class="about-row">
+          <span class="about-row-label">Certifications</span>
+          <span class="about-row-val">IBM · AWS · Cisco · Deloitte / Forage</span>
+        </div>
+        <div class="about-row">
+          <span class="about-row-label">Target Role</span>
+          <span class="about-row-val">Data Analyst Internship · Delhi NCR</span>
+        </div>
+        <div class="about-row">
+          <span class="about-row-label">Portfolio</span>
+          <span class="about-row-val"><a href="https://gauransh-singh.github.io" target="_blank">gauransh-singh.github.io ↗</a></span>
+        </div>
+        <div class="about-row">
+          <span class="about-row-label">LinkedIn</span>
+          <span class="about-row-val"><a href="https://linkedin.com/in/gauransh-singh-211586294" target="_blank">gauransh-singh-211586294 ↗</a></span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="margin-top:24px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Tech Stack</div>
+      <div class="stack">
+        <div class="stack-tag"><span class="stack-dot" style="background:#3b82f6;"></span>MySQL 8.0</div>
+        <div class="stack-tag"><span class="stack-dot" style="background:#1d9e75;"></span>Excel 365</div>
+        <div class="stack-tag"><span class="stack-dot" style="background:#f59e0b;"></span>Power BI</div>
+        <div class="stack-tag"><span class="stack-dot" style="background:#8b5cf6;"></span>Python</div>
+        <div class="stack-tag"><span class="stack-dot" style="background:#ec4899;"></span>Tableau</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Superstore Retail Analytics · Gauransh Singh · 2024</span>
+  <span>
+    <a href="https://gauransh-singh.vercel.app" target="_blank">Portfolio</a> &nbsp;·&nbsp;
+    <a href="https://linkedin.com/in/gauransh-singh-211586294" target="_blank">LinkedIn</a>
+  </span>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Stagger finding cards
+  document.querySelectorAll('.finding-card').forEach((card, i) => {
+    card.style.transitionDelay = `${i * 0.08}s`;
+  });
+</script>
+</body>
+</html>
