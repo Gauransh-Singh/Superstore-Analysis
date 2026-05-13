@@ -4,8 +4,8 @@ A full-cycle retail analytics project analyzing the Sample Superstore dataset us
 
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-a78bfa?style=for-the-badge&logoColor=white)](https://ayurdiet.vercel.app/)
-[![GitHub Repo](https://img.shields.io/badge/GitHub_Repo-181717?style=for-the-badge&logo=github&logoColor=white)](https://gauransh-singh.github.io/Superstore-Analysis/web/index.html)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-a78bfa?style=for-the-badge&logoColor=white)](https://gauransh-singh.github.io/Superstore-Analysis/web/index.html)
+
 
 </div>
 
