@@ -64,8 +64,6 @@ superstore-retail-analysis/
 │   └── superstore_analysis.sql
 ├── excel/
 │   └── superstore_dashboard.xlsx
-├── docs/
-│   └── project_documentation.docx
 |── web/
 |       └── index.html
 └── README.md
